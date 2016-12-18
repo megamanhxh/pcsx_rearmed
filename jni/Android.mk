@@ -2,7 +2,15 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+	LOCAL_CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+endif
+
 APP_DIR := ../../src
+
+#fix stupid change in ndk r11 that breaks compiling even when the exe would run fine
+LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
 
 ifneq ($(TARGET_ARCH_ABI),armeabi-v7a)
    NO_NEON_BUILD := 1
@@ -24,7 +32,7 @@ ifeq ($(TARGET_ARCH),arm)
    LOCAL_SRC_FILES += ../libpcsxcore/gte_arm.S
 
    # dynarec
-   LOCAL_SRC_FILES += ../libpcsxcore/new_dynarec/new_dynarec.c ../libpcsxcore/new_dynarec/linkage_arm.S ../libpcsxcore/new_dynarec/emu_if.c ../libpcsxcore/new_dynarec/pcsxmem.c
+   LOCAL_SRC_FILES += ../libpcsxcore/new_dynarec/new_dynarec.c ../libpcsxcore/new_dynarec/arm/linkage_arm.S ../libpcsxcore/new_dynarec/backends/psx/emu_if.c ../libpcsxcore/new_dynarec/backends/psx/pcsxmem.c
 
    # spu
    LOCAL_SRC_FILES += ../plugins/dfsound/arm_utils.S
@@ -92,7 +100,7 @@ LOCAL_SRC_FILES += ../frontend/main.c ../frontend/plugin.c ../frontend/cspace.c
 # libretro
 LOCAL_SRC_FILES += ../frontend/libretro.c
 
-LOCAL_CFLAGS += -O3 -ffast-math -funroll-loops -DNDEBUG -D_FILE_OFFSET_BITS=64 -DHAVE_LIBRETRO -DNO_FRONTEND -DFRONTEND_SUPPORTS_RGB565
+LOCAL_CFLAGS += -O3 -ffast-math -funroll-loops -DNDEBUG -D_FILE_OFFSET_BITS=64 -DHAVE_LIBRETRO -DNO_FRONTEND -DFRONTEND_SUPPORTS_RGB565 -DANDROID
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../include
 LOCAL_LDLIBS := -lz -llog
 
